@@ -1,3 +1,7 @@
+Windows build. Added register dump to file (with optional stereo, SID at DE00).
+
+Original readme.txt below:
+
 SIDDump V1.08
 by Lasse Oorni (loorni@gmail.com) and Stein Pedersen
 
