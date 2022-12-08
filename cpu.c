@@ -28,9 +28,10 @@
 #define INDIRECTY() (((MEM(LO()) | (MEM((LO() + 1) & 0xff) << 8)) + y) & 0xffff)
 #define INDIRECTZP() (((MEM(LO()) | (MEM((LO() + 1) & 0xff) << 8)) + 0) & 0xffff)
 
-#define WRITE(address)                  \
-{                                       \
-  /* cpuwritemap[(address) >> 6] = 1; */\
+#define WRITE(address)                   \
+{                                        \
+  /* cpuwritemap[(address) >> 6] = 1; */ \
+  /* MEM(address) = a;*/                      \
 }
 
 #define EVALPAGECROSSING(baseaddr, realaddr) ((((baseaddr) ^ (realaddr)) & 0xff00) ? 1 : 0)
@@ -299,8 +300,11 @@ int runcpu(void)
   unsigned temp;
 
   unsigned char op = FETCH();
-  /* printf("PC: %04x OP: %02x A:%02x X:%02x Y:%02x\n", pc-1, op, a, x, y); */
+  
+  //printf("PC: %04x OP: %02x A:%02x X:%02x Y:%02x\n", pc-1, op, a, x, y); 
+  
   cpucycles += cpucycles_table[op];
+  
   switch(op)
   {
     case 0xa7:
@@ -1167,20 +1171,9 @@ int runcpu(void)
 	{
 		CMP(x, IMMEDIATE());
 		
-		/*int tempx = x;
-		int tempimmediate = IMMEDIATE();*/
-		
 		DEC(x);
 		
 		//"sets flags like CMP"
-		
-		/*temp = (tempx - tempimmediate) & 0xff;           
-                                        
-	    flags = (flags & ~(FC|FN|FZ)) |       
-			  (temp & FN);                  
-											
-	    if (!temp) flags |= FZ;               
-	    if (tempx >= tempimmediate) flags |= FC;*/
 		
 		temp = (x - IMMEDIATE()) & 0xff;           
                                         
@@ -1192,7 +1185,7 @@ int runcpu(void)
 		
 		//=======================
 		
-		pc += 2;
+		pc++;
 		
 		break;
 	}
@@ -1203,7 +1196,7 @@ int runcpu(void)
 		
 		SBC(MEM(ABSOLUTE()));
 		
-		pc += 3;
+		pc += 2;
 		
 		break;
 	}
@@ -1214,7 +1207,7 @@ int runcpu(void)
 		
 		SBC(MEM(INDIRECTX()));
 		
-		pc += 2;
+		pc++;
 		
 		break;
 	}
@@ -1225,7 +1218,7 @@ int runcpu(void)
 		
 		SBC(MEM(ABSOLUTEX()));
 		
-		pc += 3;
+		pc += 2;
 		
 		break;
 	}

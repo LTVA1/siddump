@@ -101,6 +101,9 @@ int main(int argc, char **argv)
 	
 	int secondSid = 0;
 	int toFile = 0;
+	
+	int displayhex = 0;
+	
 	FILE* out = NULL;
 
 	// Scan arguments
@@ -150,6 +153,10 @@ int main(int argc, char **argv)
 				case 'S':
 				timeseconds = 1;
 				break;
+				
+				case 'H':
+				displayhex = 1;
+				break;
 
 				case 'T':
 				sscanf(&argv[c][2], "%u", &seconds);
@@ -184,16 +191,17 @@ int main(int argc, char **argv)
 				"-c<value> Frequency recalibration. Give note frequency in hex\n"
 				"-d<value> Select calibration note (abs.notation 80-DF). Default middle-C (B0)\n"
 				"-f<value> First frame to display, default 0\n"
-				"-l				Low-resolution mode (only display 1 row per note)\n"
+				"-l        Low-resolution mode (only display 1 row per note)\n"
 				"-n<value> Note spacing, default 0 (none)\n"
 				"-o<value> ""Oldnote-sticky"" factor. Default 1, increase for better vibrato display\n"
-				"					(when increased, requires well calibrated frequencies)\n"
+				"          (when increased, requires well calibrated frequencies)\n"
 				"-p<value> Pattern spacing, default 0 (none)\n"
-				"-s				Display time in minutes:seconds:frame format\n"
+				"-s        Display time in minutes:seconds:frame format\n"
+				"-h        Display frame index in hex format"
 				"-t<value> Playback time in seconds, default 60\n"
-				"-z				Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
-				"-x<filename>	Output file (dump), will not print to screen\n"
-				"-2				Stereo SID, $DE00 (only when output to file)\n");
+				"-z        Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
+				"-x<filename> Output file (dump), will not print to screen\n"
+				"-2        Stereo SID, $DE00 (only when output to file)\n");
 
 		return 1;
 	}
@@ -396,7 +404,18 @@ int main(int argc, char **argv)
 				output[0] = 0;
 
 				if (!timeseconds)
-					sprintf(&output[strlen(output)], "| %5d | ", time);
+				{
+					if(displayhex)
+					{
+						sprintf(&output[strlen(output)], "| %5X | ", time);
+					}
+					
+					else
+					{
+						sprintf(&output[strlen(output)], "| %5d | ", time);
+					}
+				}
+				
 				else
 					sprintf(&output[strlen(output)], "|%01d:%02d.%02d| ", time / 3000, (time / 50) % 60, time % 50);
 
@@ -459,7 +478,7 @@ int main(int argc, char **argv)
 									else
 										sprintf(&output[strlen(output)], "(- %04X) ", -delta);
 								}
-								else sprintf(&output[strlen(output)], "  ... ..  ");
+								else sprintf(&output[strlen(output)], " ... ..  ");
 							}
 						}
 						else sprintf(&output[strlen(output)], " ... ..  ");
