@@ -30,7 +30,7 @@
 
 #define WRITE(address)                  \
 {                                       \
-  /* cpuwritemap[(address) >> 6] = 1; */  \
+  /* cpuwritemap[(address) >> 6] = 1; */\
 }
 
 #define EVALPAGECROSSING(baseaddr, realaddr) ((((baseaddr) ^ (realaddr)) & 0xff00) ? 1 : 0)
@@ -1162,7 +1162,74 @@ int runcpu(void)
 
     case 0x00:
     return 0;
-
+	
+	case 0xcb: //illegal opcode from Lunatico
+	{
+		CMP(x, IMMEDIATE());
+		
+		/*int tempx = x;
+		int tempimmediate = IMMEDIATE();*/
+		
+		DEC(x);
+		
+		//"sets flags like CMP"
+		
+		/*temp = (tempx - tempimmediate) & 0xff;           
+                                        
+	    flags = (flags & ~(FC|FN|FZ)) |       
+			  (temp & FN);                  
+											
+	    if (!temp) flags |= FZ;               
+	    if (tempx >= tempimmediate) flags |= FC;*/
+		
+		temp = (x - IMMEDIATE()) & 0xff;           
+                                        
+	    flags = (flags & ~(FC|FN|FZ)) |       
+			  (temp & FN);                  
+											
+	    if (!temp) flags |= FZ;               
+	    if (x >= IMMEDIATE()) flags |= FC;
+		
+		//=======================
+		
+		pc += 2;
+		
+		break;
+	}
+	
+	case 0xef: //illegal opcode from Lunatico
+	{
+		INC(MEM(ABSOLUTE()));
+		
+		SBC(MEM(ABSOLUTE()));
+		
+		pc += 3;
+		
+		break;
+	}
+	
+	case 0xe3: //illegal opcode from Lunatico
+	{
+		INC(MEM(INDIRECTX()));
+		
+		SBC(MEM(INDIRECTX()));
+		
+		pc += 2;
+		
+		break;
+	}
+	
+	case 0xff: //illegal opcode from Lunatico
+	{
+		INC(MEM(ABSOLUTEX()));
+		
+		SBC(MEM(ABSOLUTEX()));
+		
+		pc += 3;
+		
+		break;
+	}
+	
     case 0x02:
     printf("Error: CPU halt at %04X\n", pc-1);
     exit(1);
