@@ -5,7 +5,7 @@
 #include <ctype.h>
 #include "cpu.h"
 
-#define MAX_INSTR 0x100000
+#define MAX_INSTR 0x400000
 
 typedef struct
 {
@@ -202,6 +202,11 @@ int main(int argc, char **argv)
 				"-z        Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
 				"-x<filename> Output file (dump), will not print to screen\n"
 				"-2        Stereo SID, $DE00 (only when output to file)\n");
+				
+		if(mem)
+		{
+			free(mem);
+		}
 
 		return 1;
 	}
@@ -213,6 +218,12 @@ int main(int argc, char **argv)
 		if (strcmp(sidname, outname) == 0)
 		{
 			printf("Input and output file name must be different !\n");
+			
+			if(mem)
+			{
+				free(mem);
+			}
+			
 			return 1;
 		}
 	}
@@ -247,6 +258,12 @@ int main(int argc, char **argv)
 	if (!sidname)
 	{
 		printf("Error: no SID file specified.\n");
+		
+		if(mem)
+		{
+			free(mem);
+		}
+		
 		return 1;
 	}
 
@@ -254,6 +271,12 @@ int main(int argc, char **argv)
 	if (!in)
 	{
 		printf("Error: couldn't open SID file.\n");
+		
+		if(mem)
+		{
+			free(mem);
+		}
+		
 		return 1;
 	}
 
@@ -277,6 +300,12 @@ int main(int argc, char **argv)
 	{
 		printf("Error: SID data continues past end of C64 memory.\n");
 		fclose(in);
+		
+		if(mem)
+		{
+			free(mem);
+		}
+		
 		return 1;
 	}
 	
@@ -288,10 +317,17 @@ int main(int argc, char **argv)
 		{
 			printf("Error: couldn't open output (dump) file. Will print to screen instead.\n");
 			fclose(in);
+			
+			if(mem)
+			{
+				free(mem);
+			}
+			
 			return 1;
 		}
 	}
-
+	
+	initcpu(initaddress, subtune, 0, 0);
 
 	fread(&mem[loadaddress], loadsize, 1, in);
 	fclose(in);
@@ -300,7 +336,7 @@ int main(int argc, char **argv)
 	printf("Load address: $%04X Init address: $%04X Play address: $%04X\n", loadaddress, initaddress, playaddress);
 	printf("Calling initroutine with subtune %d\n", subtune);
 	mem[0x01] = 0x37;
-	initcpu(initaddress, subtune, 0, 0);
+	//initcpu(initaddress, subtune, 0, 0);
 	instr = 0;
 	while (runcpu())
 	{
@@ -364,6 +400,12 @@ int main(int argc, char **argv)
 			if (instr > MAX_INSTR)
 			{
 				printf("Error: CPU executed abnormally high amount of instructions in playroutine, exiting\n");
+				
+				if(mem)
+				{
+					free(mem);
+				}
+				
 				return 1;
 			}
 			// Test for jump into Kernal interrupt handler exit
@@ -575,7 +617,12 @@ int main(int argc, char **argv)
 	{
 		fclose(out);
 	}
-
+	
+	if(mem)
+	{
+		free(mem);
+	}
+	
 	return 0;
 }
 

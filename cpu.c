@@ -261,7 +261,8 @@ unsigned char x;
 unsigned char y;
 unsigned char flags;
 unsigned char sp;
-unsigned char mem[0x10000];
+//unsigned char mem[0x10000];
+unsigned char* mem = NULL;
 unsigned int cpucycles;
 
 static const int cpucycles_table[] = 
@@ -293,6 +294,11 @@ void initcpu(unsigned short newpc, unsigned char newa, unsigned char newx, unsig
   flags = 0;
   sp = 0xff;
   cpucycles = 0;
+  
+  if(mem == NULL)
+  {
+	mem = (unsigned char*)malloc(0x10000 * sizeof(unsigned char));
+  }
 }
 
 int runcpu(void)
@@ -1171,17 +1177,21 @@ int runcpu(void)
 	{
 		CMP(x, IMMEDIATE());
 		
+		unsigned char tempflags = flags;
+		
 		DEC(x);
+		
+		flags = tempflags;
 		
 		//"sets flags like CMP"
 		
-		temp = (x - IMMEDIATE()) & 0xff;           
+		/*temp = (x - IMMEDIATE()) & 0xff;           
                                         
 	    flags = (flags & ~(FC|FN|FZ)) |       
 			  (temp & FN);                  
 											
 	    if (!temp) flags |= FZ;               
-	    if (x >= IMMEDIATE()) flags |= FC;
+	    if (x >= IMMEDIATE()) flags |= FC;*/
 		
 		//=======================
 		
