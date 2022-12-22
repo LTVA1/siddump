@@ -1793,7 +1793,7 @@ static const int cpucycles_table[] =
 	  
       switch (next_instruction){
           
-        case 0x00:   printf("opcode 00\n"); return 0; break;  // BRK - Break
+        case 0x00:   printf("opcode 00\n"); register_pc++; return 0; break;  // BRK - Break
         case 0x01:   opcode_0x01();    break;  // OR - Indexed Indirect X
         case 0x02:   opcode_0x02();    break;  // JAM
         case 0x03:   opcode_0x03();    break;  // SLO - Indexed Indirect X
@@ -1863,6 +1863,7 @@ static const int cpucycles_table[] =
 			if (register_sp == 0xff) 
 			{
 				printf("opcode 40\n");
+				register_pc++;
 				return 0;
 			}
 			
@@ -1906,6 +1907,7 @@ static const int cpucycles_table[] =
 			if (register_sp == 0xff)
 			{
 				printf("opcode 60\n");
+				register_pc++;
 				return 0;
 			}
 			
