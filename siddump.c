@@ -33,7 +33,7 @@ CHANNEL prevchn2[3];
 FILTER filt;
 FILTER prevfilt;
 
-extern unsigned short pc;
+extern uint16_t register_pc;
 
 const char *notename[] =
  {"C-0", "C#0", "D-0", "D#0", "E-0", "F-0", "F#0", "G-0", "G#0", "A-0", "A#0", "B-0",
@@ -175,6 +175,7 @@ int main(int argc, char **argv)
 				break;
 			}
 		}
+		
 		else 
 		{
 			if (!sidname) sidname = argv[c];
@@ -187,21 +188,21 @@ int main(int argc, char **argv)
 		printf("Usage: SIDDUMP <sidfile> [options]\n"
 				"Warning: CPU emulation may be buggy/inaccurate, illegals support very limited\n\n"
 				"Options:\n"
-				"-a<value> Accumulator value on init (subtune number) default = 0\n"
-				"-c<value> Frequency recalibration. Give note frequency in hex\n"
-				"-d<value> Select calibration note (abs.notation 80-DF). Default middle-C (B0)\n"
-				"-f<value> First frame to display, default 0\n"
-				"-l        Low-resolution mode (only display 1 row per note)\n"
-				"-n<value> Note spacing, default 0 (none)\n"
-				"-o<value> ""Oldnote-sticky"" factor. Default 1, increase for better vibrato display\n"
-				"          (when increased, requires well calibrated frequencies)\n"
-				"-p<value> Pattern spacing, default 0 (none)\n"
-				"-s        Display time in minutes:seconds:frame format\n"
-				"-h        Display frame index in hex format"
-				"-t<value> Playback time in seconds, default 60\n"
-				"-z        Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
+				"-a<value>    Accumulator value on init (subtune number) default = 0\n"
+				"-c<value>    Frequency recalibration. Give note frequency in hex\n"
+				"-d<value>    Select calibration note (abs.notation 80-DF). Default middle-C (B0)\n"
+				"-f<value>    First frame to display, default 0\n"
+				"-l           Low-resolution mode (only display 1 row per note)\n"
+				"-n<value>    Note spacing, default 0 (none)\n"
+				"-o<value>    \"Oldnote-sticky\" factor. Default 1, increase for better vibrato display\n"
+				"             (when increased, requires well calibrated frequencies)\n"
+				"-p<value>    Pattern spacing, default 0 (none)\n"
+				"-s           Display time in minutes:seconds:frame format\n"
+				"-h           Display frame index in hex format\n"
+				"-t<value>    Playback time in seconds, default 60\n"
+				"-z           Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
 				"-x<filename> Output file (dump), will not print to screen\n"
-				"-2        Stereo SID, $DE00 (only when output to file)\n");
+				"-2           Stereo SID, $DE00 (only when output to file)\n");
 				
 		if(mem)
 		{
@@ -296,6 +297,7 @@ int main(int argc, char **argv)
 	loadend = ftell(in);
 	fseek(in, loadpos, SEEK_SET);
 	loadsize = loadend - loadpos;
+	
 	if (loadsize + loadaddress >= 0x10000)
 	{
 		printf("Error: SID data continues past end of C64 memory.\n");
@@ -328,8 +330,9 @@ int main(int argc, char **argv)
 	}
 	
 	initcpu(initaddress, subtune, 0, 0);
-
+	
 	fread(&mem[loadaddress], loadsize, 1, in);
+	
 	fclose(in);
 
 	// Print info & run initroutine
@@ -347,7 +350,9 @@ int main(int argc, char **argv)
 				mem[0xd011] ^= 0x80;
 				mem[0xd012] = 0x00;
 		}
+		
 		instr++;
+		
 		if (instr > MAX_INSTR)
 		{
 			printf("Warning: CPU executed a high number of instructions in init, breaking\n");
@@ -409,7 +414,7 @@ int main(int argc, char **argv)
 				return 1;
 			}
 			// Test for jump into Kernal interrupt handler exit
-			if ((mem[0x01] & 0x07) != 0x5 && (pc == 0xea31 || pc == 0xea81))
+			if ((mem[0x01] & 0x07) != 0x5 && (register_pc == 0xea31 || register_pc == 0xea81))
 				break;
 		}
 
