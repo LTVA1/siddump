@@ -99,8 +99,8 @@ uint8_t   nmi_n_old=1;
 uint8_t   register_a=0;
 uint8_t   register_x=0;
 uint8_t   register_y=0;
-//uint8_t   register_sp=0xFF;
-uint8_t   register_sp=0;
+uint8_t   register_sp=0xFF;
+//uint8_t   register_sp=0;
 uint8_t   direct_datain=0;
 uint8_t   direct_reset=0;
 uint8_t   direct_ready_n=0;
@@ -146,7 +146,7 @@ int       incomingByte;
 //          0x2 - Reads accelerated using internal memory and writes are cycle accurate and pass through to motherboard
 //          0x3 - All read and write accesses use accelerated internal memory 
 // ----------------------------------------------------------
-inline uint8_t internal_address_check(uint16_t local_address) {
+uint8_t internal_address_check(uint16_t local_address) {
 
 
   if ( (local_address > 0x0001 ) && (local_address <= 0x03FF) ) return mode;            //   Zero-Page up to video 
@@ -167,7 +167,7 @@ inline uint8_t internal_address_check(uint16_t local_address) {
 // -------------------------------------------------
 // Wait for the CLK1 rising edge and sample signals
 // -------------------------------------------------
-inline void wait_for_CLK_rising_edge() {
+void wait_for_CLK_rising_edge() {
     return; 
 }
 
@@ -175,7 +175,7 @@ inline void wait_for_CLK_rising_edge() {
 // -------------------------------------------------
 // Wait for the CLK1 falling edge 
 // -------------------------------------------------
-inline void wait_for_CLK_falling_edge() {
+void wait_for_CLK_falling_edge() {
   return; 
 }
 
@@ -183,7 +183,7 @@ inline void wait_for_CLK_falling_edge() {
 // -------------------------------------------------
 // Drive the 6502 Address pins
 // -------------------------------------------------
-inline void send_address(uint32_t local_address) {
+void send_address(uint32_t local_address) {
 	current_address = local_address;
     return;
 }
@@ -192,7 +192,7 @@ inline void send_address(uint32_t local_address) {
 // -------------------------------------------------
 // Send the address for a read cyle
 // -------------------------------------------------
-inline void start_read(uint32_t local_address) {
+void start_read(uint32_t local_address) {
 	current_address = local_address;
     return;
 }
@@ -202,7 +202,7 @@ inline void start_read(uint32_t local_address) {
 // -------------------------------------------------
 // Fetch data from the correct Bank
 // -------------------------------------------------
-inline uint8_t fetch_byte_from_bank() {
+uint8_t fetch_byte_from_bank() {
                      
     if (Page_160_191==0x1)  {  if   ((bank_mode&0x3)==0x3)                                  {  return BASIC_ROM[current_address & 0x1FFF];        }
                                else                                                         {  return mem[current_address];              }  }
@@ -252,7 +252,7 @@ uint8_t read_byte(uint16_t local_address) {
 // -------------------------------------------------
 // Full write cycle with address and data written
 // -------------------------------------------------
-inline void write_byte(uint16_t local_address , uint8_t local_write_data) {
+void write_byte(uint16_t local_address , uint8_t local_write_data) {
   
   // Internal RAM
   //
@@ -597,10 +597,13 @@ void nmi_handler() {
 // BRK & IRQ Interrupt Processing
 // -------------------------------------------------
 void irq_handler(uint8_t opcode_is_brk) {
+	
+	//printf("irq handler start\n");
+	
     uint16_t temp1, temp2;
     
     wait_for_CLK_rising_edge();                                     // Begin processing on next CLK edge
-                        
+    
     register_flags = register_flags | 0x20;                         // Set the flag[5]          
     if (opcode_is_brk==1) register_flags = register_flags | 0x10;   // Set the B flag
     else                  register_flags = register_flags & 0xEF;   // Clear the B flag
@@ -611,12 +614,14 @@ void irq_handler(uint8_t opcode_is_brk) {
     push(register_flags);                                           // Push P
     temp1 = read_byte(0xFFFE);                                      // Fetch Vector PCL
     temp2 = read_byte(0xFFFF);                                      // Fetch Vector PCH
-                
+    
     register_flags = register_flags | 0x34;                         // Set the I flag and restore the B flag
-                
+    
     register_pc = (temp2<<8) | temp1;           
     assert_sync=1;
     start_read(register_pc);                                        // Fetch first opcode at vector PCH,PCL
+	
+	//printf("irq handler end\n");
     
     return;
 }
@@ -1752,9 +1757,6 @@ void initcpu(unsigned short newpc, unsigned char newa, unsigned char newx, unsig
       //if (nmi_n_old==0 && direct_nmi==1)        nmi_handler();          
       //if (direct_irq==0x1  && (flag_i)==0x0)    irq_handler(0x0);   
       //nmi_n_old = direct_nmi;                                        
-
-    
-      
 }
 
 static const int cpucycles_table[] = 
@@ -1789,11 +1791,18 @@ static const int cpucycles_table[] =
 	  
 	  cpucycles += cpucycles_table[next_instruction];
 	  
-	  //printf("register_pc 0x%X\n", register_pc);
+	  //printf("register_pc 0x%X, opcode 0x%X\n", register_pc, mem[register_pc]);
 	  
       switch (next_instruction){
           
-        case 0x00:   printf("opcode 00\n"); register_pc++; return 0; break;  // BRK - Break
+        case 0x00:   
+		{
+			irq_handler(0x1);
+			//printf("opcode 00\n");
+			return 0;
+			break;  // BRK - Break
+		}
+		
         case 0x01:   opcode_0x01();    break;  // OR - Indexed Indirect X
         case 0x02:   opcode_0x02();    break;  // JAM
         case 0x03:   opcode_0x03();    break;  // SLO - Indexed Indirect X
@@ -1860,14 +1869,26 @@ static const int cpucycles_table[] =
 		
         case 0x40:   
 		{
+			//if (register_sp == 0xff) return 0;
+			/*if (register_sp == 0xff) 
+			{
+				printf("opcode 40\n");
+				//register_pc++;
+				Begin_Fetch_Next_Opcode();
+				return 0;
+			}*/
+			
+			opcode_0x40();  
+
 			if (register_sp == 0xff) 
 			{
 				printf("opcode 40\n");
-				register_pc++;
+				//register_pc++;
+				//Begin_Fetch_Next_Opcode();
 				return 0;
-			}
+			}			
 			
-			opcode_0x40();    break;  // RTI - Return from Interrupt
+			break;  // RTI - Return from Interrupt
 		}
 		
         case 0x41:   opcode_0x41();    break;  // EOR - Indexed Indirect X
@@ -1904,14 +1925,25 @@ static const int cpucycles_table[] =
 		
         case 0x60:   
 		{
+			//if (register_sp == 0xff) return 0;
+			
+			/*if (register_sp == 0xff)
+			{
+				printf("opcode 60\n");
+				//register_pc++;
+				Begin_Fetch_Next_Opcode();
+				return 0;
+			}*/
+			
+			opcode_0x60();    
+			
 			if (register_sp == 0xff)
 			{
 				printf("opcode 60\n");
-				register_pc++;
 				return 0;
 			}
 			
-			opcode_0x60();    break;  // RTS - Return from Subroutine
+			break;  // RTS - Return from Subroutine
 		}
 		
         case 0x61:   opcode_0x61();    break;  // ADC - Indexed Indirect X
