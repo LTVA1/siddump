@@ -197,7 +197,7 @@ int main(int argc, char **argv)
 				"          (when increased, requires well calibrated frequencies)\n"
 				"-p<value> Pattern spacing, default 0 (none)\n"
 				"-s        Display time in minutes:seconds:frame format\n"
-				"-h        Display frame index in hex format"
+				"-h        Display frame index in hex format\n"
 				"-t<value> Playback time in seconds, default 60\n"
 				"-z        Include CPU cycles+rastertime (PAL)+rastertime, badline corrected\n"
 				"-x<filename> Output file (dump), will not print to screen\n"

@@ -297,7 +297,7 @@ void initcpu(unsigned short newpc, unsigned char newa, unsigned char newx, unsig
   
   if(mem == NULL)
   {
-	mem = (unsigned char*)malloc(0x10000 * sizeof(unsigned char));
+	mem = (unsigned char*)calloc(1, 0x10000 * sizeof(unsigned char));
   }
 }
 
