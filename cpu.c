@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define FN 0x80
 #define FV 0x40
@@ -297,7 +298,8 @@ void initcpu(unsigned short newpc, unsigned char newa, unsigned char newx, unsig
   
   if(mem == NULL)
   {
-	mem = (unsigned char*)calloc(1, 0x10000 * sizeof(unsigned char));
+	  mem = (unsigned char*)calloc(1, 0x10000 * sizeof(unsigned char));
+    memset(mem, 0, 0x10000);
   }
 }
 
