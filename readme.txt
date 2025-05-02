@@ -2,7 +2,7 @@ Windows build. Added register dump to file (with optional stereo, SID at DE00).
 
 Original readme.txt below:
 
-SIDDump V1.08
+SIDDump V1.09
 by Lasse Oorni (loorni@gmail.com) and Stein Pedersen
 
 Version history:
@@ -17,8 +17,9 @@ V1.05   - Partial support for multispeed tunes
 V1.06   - Added CPU cycle profiling functionality by Stein Pedersen
 V1.07   - Support rudimentary line counting for SID detection routines
 V1.08   - CPU bugfixes
+V1.09   - Add alternating (funktempo) note spacing
 
-Copyright (C) 2005-2020 by the authors. All rights reserved.
+Copyright (C) 2005-2024 by the authors. All rights reserved.
 
 Redistribution and use in source and binary forms, with or without
 modification, are permitted provided that the following conditions are met:

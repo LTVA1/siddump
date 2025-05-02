@@ -76,7 +76,7 @@ int main(int argc, char **argv)
 	int seconds = 60;
 	int instr = 0;
 	int frames = 0;
-	int spacing = 0;
+	int spacing[2];
 	int pattspacing = 0;
 	int firstframe = 0;
 	int counter = 0;
@@ -88,6 +88,7 @@ int main(int argc, char **argv)
 	int timeseconds = 0;
 	int usage = 0;
 	int profiling = 0;
+  int tempoindex = 0;
 	unsigned loadend;
 	unsigned loadpos;
 	unsigned loadsize;
@@ -139,9 +140,16 @@ int main(int argc, char **argv)
 				lowres = 1;
 				break;
 
-				case 'N':
-				sscanf(&argv[c][2], "%u", &spacing);
-				break;
+        case 'N':
+        // Funktempo
+        if (strchr(argv[c], ','))
+            sscanf(&argv[c][2], "%u,%u", &spacing[0], &spacing[1]);
+        else
+        {
+            sscanf(&argv[c][2], "%u", &spacing[0]);
+            spacing[1] = spacing[0];
+        }
+        break;
 
 				case 'O':
 				sscanf(&argv[c][2], "%u", &oldnotefactor);
@@ -194,7 +202,7 @@ int main(int argc, char **argv)
 				"-d<value> Select calibration note (abs.notation 80-DF). Default middle-C (B0)\n"
 				"-f<value> First frame to display, default 0\n"
 				"-l        Low-resolution mode (only display 1 row per note)\n"
-				"-n<value> Note spacing, default 0 (none)\n"
+				"-n<value> Note spacing, default 0 (none). Use <value>,<value> to specify a funktempo\n"
 				"-o<value> ""Oldnote-sticky"" factor. Default 1, increase for better vibrato display\n"
 				"          (when increased, requires well calibrated frequencies)\n"
 				"-p<value> Pattern spacing, default 0 (none)\n"
@@ -253,8 +261,8 @@ int main(int argc, char **argv)
 		}
 	}
 
-	// Check other parameters for correctness
-	if ((lowres) && (!spacing)) lowres = 0;
+  // Check other parameters for correctness
+  if ((lowres) && (!spacing[0])) lowres = 0;
 
 	// Open SID file
 	if (!sidname)
@@ -575,7 +583,7 @@ int main(int argc, char **argv)
 
 				// End of frame display, print info so far and copy SID registers to old registers
 				sprintf(&output[strlen(output)], "|\n");
-				if ((!lowres) || (!((frames - firstframe) % spacing)))
+				if ((!lowres) || (!((frames - firstframe) % spacing[tempoindex])))
 				{
 					printf("%s", output);
 					for (c = 0; c < 3; c++)
@@ -587,11 +595,12 @@ int main(int argc, char **argv)
 				for (c = 0; c < 3; c++) prevchn2[c] = chn[c];
 
 				// Print note/pattern separators
-				if (spacing)
+				if (spacing[tempoindex])
 				{
 					counter++;
-					if (counter >= spacing)
+					if (counter >= spacing[tempoindex])
 					{
+          tempoindex ^= 1;
 						counter = 0;
 						if (pattspacing)
 						{
