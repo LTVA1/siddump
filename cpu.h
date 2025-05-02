@@ -127,7 +127,7 @@ void initcpu(unsigned short newpc, unsigned char newa, unsigned char newx, unsig
   regs.nmi = 0;
   regs.jammed = 0;
 
-  printf("init pc: %04X\n\n", regs.pc);
+  //printf("init pc: %04X\n\n", regs.pc);
   
   if(mem == NULL)
   {
@@ -937,7 +937,7 @@ void rmw_indy(uint8_t (*f)(uint8_t)) {
 }
 
 uint8_t step() {
-    printf("pc: %04X\n", regs.pc);
+    //printf("pc: %04X\n", regs.pc);
 
     if (regs.jammed) {
         advance_cycle();
@@ -1119,6 +1119,7 @@ uint8_t step() {
             advance_cycle();
             regs.pc = addr; // profit
             regs.i = 1;
+            return 0;
             break;
         }
 
@@ -1149,6 +1150,7 @@ uint8_t step() {
             advance_cycle();
             regs.pc = (regs.pc&0xff)|(pop_no_inc()<<8); // get PCH
             advance_cycle();
+            return 0;
             break;
         }
 
@@ -1164,6 +1166,7 @@ uint8_t step() {
             advance_cycle();
             regs.pc++;
             advance_cycle();
+            return 0;
             break;
         }
 
@@ -2194,7 +2197,6 @@ uint8_t step() {
             //printf("\nUNSUPPORTED OPCODE %02x: %s %s\nEXITING...\n\n",opcode,_opName[opcode],addr_modes[_opMode[opcode]]);
             //show_opimp();
             //exit(0);
-            return 1;
             break;
         }
     }
