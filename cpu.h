@@ -1139,6 +1139,7 @@ uint8_t step() {
         }
 
         case 0x40: { // RTI
+            if(regs.sp == 0xff) return 0;
             advance_cycle(); // read PC
             read6502(regs.pc); // read next instruction byte (and throw it away)
             advance_cycle();
@@ -1150,11 +1151,11 @@ uint8_t step() {
             advance_cycle();
             regs.pc = (regs.pc&0xff)|(pop_no_inc()<<8); // get PCH
             advance_cycle();
-            return 0;
             break;
         }
 
         case 0x60: { // RTS
+            if(regs.sp == 0xff) return 0;
             advance_cycle(); // read PC
             read6502(regs.pc); // read next instruction byte (and throw it away)
             advance_cycle();
@@ -1166,7 +1167,7 @@ uint8_t step() {
             advance_cycle();
             regs.pc++;
             advance_cycle();
-            return 0;
+            //return 0;
             break;
         }
 
